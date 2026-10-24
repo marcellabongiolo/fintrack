@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import { ArrowDownLeft, ArrowUpRight, Bell, Download, Plus, Search, Target, Trash2, Wallet, X } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { initialTransactions } from "./data/seed";
+import { filterTransactions, getSpendingByCategory, summarizeTransactions, transactionsToCsv } from "./lib/finance";
 import type { Transaction, TransactionType } from "./types/finance";
 
 const STORAGE_KEY = "fintrack.transactions.v1";
@@ -33,17 +34,22 @@ export default function App() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
   }, [transactions]);
 
-  const income = transactions.filter((item) => item.type === "income").reduce((sum, item) => sum + item.amount, 0);
-  const expenses = transactions.filter((item) => item.type === "expense").reduce((sum, item) => sum + item.amount, 0);
-  const spending = useMemo(() => {
-    const totals = new Map<string, number>();
-    transactions.filter((item) => item.type === "expense").forEach((item) => totals.set(item.category, (totals.get(item.category) ?? 0) + item.amount));
-    return [...totals.entries()].map(([name, value], index) => ({ name, value, color: colors[index % colors.length] })).sort((a, b) => b.value - a.value);
-  }, [transactions]);
-  const visible = transactions
-    .filter((item) => filter === "all" || item.type === filter)
-    .filter((item) => `${item.title} ${item.category}`.toLowerCase().includes(query.toLowerCase()))
-    .sort((a, b) => b.date.localeCompare(a.date));
+  const { income, expenses, balance } = useMemo(
+    () => summarizeTransactions(transactions),
+    [transactions],
+  );
+  const spending = useMemo(
+    () =>
+      getSpendingByCategory(transactions).map((item, index) => ({
+        ...item,
+        color: colors[index % colors.length],
+      })),
+    [transactions],
+  );
+  const visible = useMemo(
+    () => filterTransactions(transactions, query, filter),
+    [transactions, query, filter],
+  );
 
   function notify(message: string) {
     setNotice(message);
@@ -73,8 +79,7 @@ export default function App() {
   }
 
   function exportCsv() {
-    const rows = [["Date", "Description", "Category", "Type", "Amount"], ...transactions.map((item) => [item.date, item.title, item.category, item.type, item.amount.toFixed(2)])];
-    const csv = rows.map((row) => row.map((field) => `"${String(field).replace(/\"/g, '\"\"')}"`).join(",")).join("\r\n");
+    const csv = transactionsToCsv(transactions);
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
     const link = document.createElement("a");
     link.href = url;
@@ -104,12 +109,12 @@ export default function App() {
           <section className="welcome"><div><div className="eyebrow"><span /> YOUR FINANCIAL SNAPSHOT</div><h1>Good morning, Jordan <span>✦</span></h1><p>Here's what's happening with your money today.</p></div><div className="welcome-buttons"><button className="button-secondary" onClick={exportCsv}><Download size={16} /> Export</button><button className="button-primary" onClick={() => setModal(true)}><Plus size={17} /> Add transaction</button></div></section>
 
           <section className="stats">
-            <article className="panel stat"><div className="stat-head">Total balance <span className="stat-icon purple"><Wallet size={18} /></span></div><strong>{money.format(income - expenses)}</strong><small>Income minus expenses</small></article>
+            <article className="panel stat"><div className="stat-head">Total balance <span className="stat-icon purple"><Wallet size={18} /></span></div><strong>{money.format(balance)}</strong><small>Income minus expenses</small></article>
             <article className="panel stat"><div className="stat-head">Total income <span className="stat-icon green"><ArrowDownLeft size={18} /></span></div><strong>{money.format(income)}</strong><small>Across all transactions</small></article>
             <article className="panel stat"><div className="stat-head">Total expenses <span className="stat-icon orange"><ArrowUpRight size={18} /></span></div><strong>{money.format(expenses)}</strong><small>Across all transactions</small></article>
           </section>
 
-          <section className="insight"><span className="insight-icon">✦</span><div><strong>Small steps, stronger finances.</strong><p>You have {money.format(income - expenses)} left after your recorded expenses. Keep tracking to build a clearer picture.</p></div></section>
+          <section className="insight"><span className="insight-icon">✦</span><div><strong>Small steps, stronger finances.</strong><p>You have {money.format(balance)} left after your recorded expenses. Keep tracking to build a clearer picture.</p></div></section>
 
           <section className="middle-grid">
             <article className="panel content-panel"><div className="section-head"><div><h2>Spending breakdown</h2><p>Where your money is going</p></div><span className="tag">All time</span></div>
