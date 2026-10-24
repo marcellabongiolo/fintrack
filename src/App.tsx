@@ -1,4 +1,5 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { FormEvent } from "react";
 import { ArrowDownLeft, ArrowUpRight, Bell, Download, Plus, Search, Target, Trash2, Wallet, X } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { initialTransactions } from "./data/seed";
