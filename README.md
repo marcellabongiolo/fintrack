@@ -2,6 +2,12 @@
 
 A modern, responsive personal finance dashboard built with React, TypeScript, Vite, and Recharts.
 
+## 🚀 Live demo
+
+**[Open FinTrack →](https://marcellabongiolo.github.io/fintrack/)**
+
+Try the app directly in your browser — no installation required.
+
 > **Portfolio project:** FinTrack currently runs in the browser using local storage and sample transactions. It is a learning/demo application, not a financial service. Do not enter sensitive financial information.
 
 ## Features
@@ -75,7 +81,7 @@ The repository includes a GitHub Actions workflow that builds and deploys FinTra
 1. In the repository, open **Settings → Pages**.
 2. Under **Build and deployment**, choose **GitHub Actions** as the source if it is not already selected.
 3. Open the **Actions** tab and check the **Deploy FinTrack to GitHub Pages** workflow.
-4. After a successful deployment, the app should be available at `https://marcellabongiolo.github.io/fintrack/`.
+4. After a successful deployment, the app is available at [https://marcellabongiolo.github.io/fintrack/](https://marcellabongiolo.github.io/fintrack/).
 
 The first deployment may require enabling GitHub Pages in repository settings.
 
@@ -109,7 +115,8 @@ fintrack/
 - [x] CSV export
 - [x] Unit tests for finance calculations and CSV export
 - [x] GitHub Actions CI for tests and production build
-- [x] GitHub Pages deployment workflow\n- [ ] Component and accessibility tests
+- [x] GitHub Pages deployment workflow
+- [ ] Component and accessibility tests
 - [ ] Backend API and PostgreSQL database
 - [ ] Authentication and user-specific data
 - [ ] Recurring transactions and budget editing
