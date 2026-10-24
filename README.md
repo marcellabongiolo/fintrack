@@ -75,10 +75,14 @@ fintrack/
 ├── src/
 │   ├── data/seed.ts
 │   ├── types/finance.ts
+│   ├── lib/
+│   │   ├── finance.ts
+│   │   └── finance.test.ts
 │   ├── App.tsx
 │   ├── main.tsx
 │   └── styles.css
 ├── .env.example
+├── .github/workflows/ci.yml
 ├── .gitignore
 ├── index.html
 ├── package.json
