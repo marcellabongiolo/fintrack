@@ -1,0 +1,119 @@
+import { describe, expect, it } from "vitest";
+import type { Transaction } from "../types/finance";
+import {
+  filterTransactions,
+  getSpendingByCategory,
+  summarizeTransactions,
+  transactionsToCsv,
+} from "./finance";
+
+const transactions: Transaction[] = [
+  {
+    id: "salary",
+    title: "Monthly salary",
+    category: "Salary",
+    date: "2026-10-10",
+    amount: 3000,
+    type: "income",
+  },
+  {
+    id: "rent",
+    title: "Apartment rent",
+    category: "Housing",
+    date: "2026-10-05",
+    amount: 1000,
+    type: "expense",
+  },
+  {
+    id: "groceries",
+    title: "Weekly groceries",
+    category: "Food",
+    date: "2026-10-08",
+    amount: 80,
+    type: "expense",
+  },
+  {
+    id: "coffee",
+    title: "Coffee with friends",
+    category: "Food",
+    date: "2026-10-12",
+    amount: 20,
+    type: "expense",
+  },
+];
+
+describe("summarizeTransactions", () => {
+  it("calculates income, expenses, and balance", () => {
+    expect(summarizeTransactions(transactions)).toEqual({
+      income: 3000,
+      expenses: 1100,
+      balance: 1900,
+    });
+  });
+
+  it("returns zero totals when there are no transactions", () => {
+    expect(summarizeTransactions([])).toEqual({
+      income: 0,
+      expenses: 0,
+      balance: 0,
+    });
+  });
+});
+
+describe("getSpendingByCategory", () => {
+  it("combines expenses in the same category and sorts by amount", () => {
+    expect(getSpendingByCategory(transactions)).toEqual([
+      { name: "Housing", value: 1000 },
+      { name: "Food", value: 100 },
+    ]);
+  });
+
+  it("does not include income in the spending breakdown", () => {
+    expect(getSpendingByCategory(transactions).some((item) => item.name === "Salary")).toBe(false);
+  });
+});
+
+describe("filterTransactions", () => {
+  it("searches descriptions and categories without case sensitivity", () => {
+    expect(filterTransactions(transactions, "FOOD").map((item) => item.id)).toEqual([
+      "coffee",
+      "groceries",
+    ]);
+  });
+
+  it("filters by transaction type and sorts newest first", () => {
+    expect(filterTransactions(transactions, "", "expense").map((item) => item.id)).toEqual([
+      "coffee",
+      "groceries",
+      "rent",
+    ]);
+  });
+
+  it("returns an empty list when nothing matches", () => {
+    expect(filterTransactions(transactions, "vacation")).toEqual([]);
+  });
+});
+
+describe("transactionsToCsv", () => {
+  it("exports a header and formatted transaction values", () => {
+    expect(transactionsToCsv([transactions[0]])).toBe(
+      '"Date","Description","Category","Type","Amount"\r\n' +
+        '"2026-10-10","Monthly salary","Salary","income","3000.00"',
+    );
+  });
+
+  it("escapes commas and quotation marks in user-provided text", () => {
+    const unusualTransaction: Transaction = {
+      id: "quoted",
+      title: 'Dinner, "with friends"',
+      category: "Food",
+      date: "2026-10-14",
+      amount: 45,
+      type: "expense",
+    };
+
+    expect(transactionsToCsv([unusualTransaction])).toContain(
+      '"2026-10-14","Dinner, ""with friends""","Food","expense","45.00"',
+    );
+  });
+});
