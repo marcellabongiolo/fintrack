@@ -68,6 +68,17 @@ npm run test:watch
 
 GitHub Actions also runs the unit tests and production build for pushes and pull requests targeting `main`.
 
+## Deployment
+
+The repository includes a GitHub Actions workflow that builds and deploys FinTrack to GitHub Pages when changes are pushed to `main`.
+
+1. In the repository, open **Settings → Pages**.
+2. Under **Build and deployment**, choose **GitHub Actions** as the source if it is not already selected.
+3. Open the **Actions** tab and check the **Deploy FinTrack to GitHub Pages** workflow.
+4. After a successful deployment, the app should be available at `https://marcellabongiolo.github.io/fintrack/`.
+
+The first deployment may require enabling GitHub Pages in repository settings.
+
 ## Project structure
 
 ```text
@@ -98,11 +109,11 @@ fintrack/
 - [x] CSV export
 - [x] Unit tests for finance calculations and CSV export
 - [x] GitHub Actions CI for tests and production build
-- [ ] Component and accessibility tests
+- [x] GitHub Pages deployment workflow\n- [ ] Component and accessibility tests
 - [ ] Backend API and PostgreSQL database
 - [ ] Authentication and user-specific data
 - [ ] Recurring transactions and budget editing
-- [ ] Accessibility review and CI workflow
+- [ ] Accessibility review
 
 ## Security notes
 
