@@ -50,6 +50,24 @@ npm run build
 npm run preview
 ```
 
+## Automated tests
+
+FinTrack uses [Vitest](https://vitest.dev/) to test the core finance utilities, including balance calculations, spending totals, transaction filtering, and CSV escaping.
+
+Run the test suite once:
+
+```bash
+npm test
+```
+
+Run tests in watch mode while developing:
+
+```bash
+npm run test:watch
+```
+
+GitHub Actions also runs the unit tests and production build for pushes and pull requests targeting `main`.
+
 ## Project structure
 
 ```text
@@ -74,7 +92,9 @@ fintrack/
 - [x] Transaction management in the browser
 - [x] Spending breakdown and budget progress
 - [x] CSV export
-- [ ] Automated unit and component tests
+- [x] Unit tests for finance calculations and CSV export
+- [x] GitHub Actions CI for tests and production build
+- [ ] Component and accessibility tests
 - [ ] Backend API and PostgreSQL database
 - [ ] Authentication and user-specific data
 - [ ] Recurring transactions and budget editing
