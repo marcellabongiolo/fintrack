@@ -80,3 +80,45 @@ export function transactionsToCsv(transactions: Transaction[]): string {
     )
     .join("\r\n");
 }
+
+export interface CategoryBudget {
+  category: string;
+  limit: number;
+}
+
+export interface CategoryBudgetProgress extends CategoryBudget {
+  spent: number;
+  remaining: number;
+  percentage: number;
+  exceeded: boolean;
+}
+
+/** Monthly expense totals use ISO calendar dates (YYYY-MM-DD). */
+export function getMonthlyBudgetProgress(
+  transactions: Transaction[],
+  budgets: CategoryBudget[],
+  month: string,
+): CategoryBudgetProgress[] {
+  return budgets
+    .filter((budget) => Number.isFinite(budget.limit) && budget.limit > 0)
+    .map((budget) => {
+      const spent = transactions.reduce((total, transaction) => {
+        if (
+          transaction.type === "expense" &&
+          transaction.category === budget.category &&
+          transaction.date.slice(0, 7) === month
+        ) {
+          return total + transaction.amount;
+        }
+        return total;
+      }, 0);
+
+      return {
+        ...budget,
+        spent,
+        remaining: budget.limit - spent,
+        percentage: (spent / budget.limit) * 100,
+        exceeded: spent > budget.limit,
+      };
+    });
+}
