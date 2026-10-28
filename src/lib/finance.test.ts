@@ -4,6 +4,7 @@ import {
   filterTransactions,
   getSpendingByCategory,
   getMonthlyBudgetProgress,
+  getMonthlyCashflow,
   summarizeTransactions,
   transactionsToCsv,
 } from "./finance";
@@ -145,5 +146,32 @@ describe("getMonthlyBudgetProgress", () => {
   it("returns zero spending when no transactions match the month", () => {
     expect(getMonthlyBudgetProgress(transactions, [{ category: "Food", limit: 200 }], "2026-11")[0])
       .toMatchObject({ spent: 0, remaining: 200, percentage: 0, exceeded: false });
+  });
+});
+
+describe("getMonthlyCashflow", () => {
+  it("returns consecutive months with separate income, expenses and balances", () => {
+    const result = getMonthlyCashflow(transactions, "2026-10", 3);
+    expect(result).toEqual([
+      { month: "2026-08", income: 0, expenses: 0, balance: 0 },
+      { month: "2026-09", income: 0, expenses: 0, balance: 0 },
+      { month: "2026-10", income: 3000, expenses: 1100, balance: 1900 },
+    ]);
+  });
+
+  it("handles year boundaries and excludes transactions outside the window", () => {
+    const result = getMonthlyCashflow([
+      { ...transactions[1], date: "2025-12-05" },
+      { ...transactions[2], date: "2026-01-08" },
+    ], "2026-01", 2);
+    expect(result).toEqual([
+      { month: "2025-12", income: 0, expenses: 1000, balance: -1000 },
+      { month: "2026-01", income: 0, expenses: 80, balance: -80 },
+    ]);
+  });
+
+  it("rejects invalid month or count", () => {
+    expect(() => getMonthlyCashflow([], "2026-13")).toThrow();
+    expect(() => getMonthlyCashflow([], "2026-10", 0)).toThrow();
   });
 });

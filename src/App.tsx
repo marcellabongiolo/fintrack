@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { ArrowDownLeft, ArrowUpRight, Bell, Download, Plus, Search, Target, Trash2, Wallet, X } from "lucide-react";
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { initialTransactions } from "./data/seed";
-import { filterTransactions, getSpendingByCategory, getMonthlyBudgetProgress, summarizeTransactions, transactionsToCsv } from "./lib/finance";
+import { filterTransactions, getSpendingByCategory, getMonthlyBudgetProgress, getMonthlyCashflow, summarizeTransactions, transactionsToCsv } from "./lib/finance";
 import type { CategoryBudget } from "./lib/finance";
 import type { Transaction, TransactionType } from "./types/finance";
 
@@ -61,6 +61,9 @@ export default function App() {
 
   const currentMonth = new Date().toISOString().slice(0, 7);
   const budgetProgress = useMemo(() => getMonthlyBudgetProgress(transactions, budgets, currentMonth), [transactions, budgets, currentMonth]);
+
+  const cashflow = useMemo(() => getMonthlyCashflow(transactions, currentMonth), [transactions, currentMonth]);
+  const cashflowHasActivity = cashflow.some((item) => item.income > 0 || item.expenses > 0);
 
   const { income, expenses, balance } = useMemo(
     () => summarizeTransactions(transactions),
@@ -174,6 +177,26 @@ export default function App() {
               </div>)}
               <div className="budget-foot"><Target size={16} /> You're building healthier money habits.</div>
             </article>
+          </section>
+
+          <section className="panel content-panel" aria-label="Monthly cashflow" style={{ marginBottom: 24 }}>
+            <div className="section-head"><div><h2>Monthly cashflow</h2><p>Income and expenses over the last six months</p></div><span className="tag">Last 6 months</span></div>
+            {cashflowHasActivity ? (
+              <div style={{ width: "100%", height: 290, minWidth: 0 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={cashflow} margin={{ top: 10, right: 12, left: 0, bottom: 8 }}>
+                    <CartesianGrid stroke="#303d52" strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="month" tick={{ fill: "#94a3b8", fontSize: 11 }} tickFormatter={(value: string) => value.slice(5)} />
+                    <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} width={54} />
+                    <Tooltip formatter={(value) => money.format(Number(value))} contentStyle={{ background: "#182235", border: "1px solid #303d52", borderRadius: 10 }} />
+                    <Legend />
+                    <Bar dataKey="income" name="Income" fill="#4ed6b0" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="expenses" name="Expenses" fill="#f18fa5" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : <p className="empty">No transactions in the last six months.</p>}
+            <p style={{ color: "#94a3b8", fontSize: 13 }}>Current month balance: {money.format(cashflow[cashflow.length - 1].balance)}</p>
           </section>
 
           <section className="panel transactions-panel"><div className="section-head"><div><h2>Recent transactions</h2><p>Keep an eye on where your money goes.</p></div><span className="tag">{visible.length} items</span></div>
