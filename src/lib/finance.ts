@@ -122,3 +122,32 @@ export function getMonthlyBudgetProgress(
       };
     });
 }
+
+
+export interface MonthlyCashflow {
+  month: string;
+  income: number;
+  expenses: number;
+  balance: number;
+}
+
+/** Returns consecutive calendar months ending in the provided YYYY-MM month. */
+export function getMonthlyCashflow(
+  transactions: Transaction[],
+  endingMonth: string,
+  count = 6,
+): MonthlyCashflow[] {
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(endingMonth) || !Number.isInteger(count) || count < 1) {
+    throw new Error("Invalid monthly cashflow range");
+  }
+
+  const [year, month] = endingMonth.split("-").map(Number);
+  const result: MonthlyCashflow[] = [];
+  for (let offset = count - 1; offset >= 0; offset -= 1) {
+    const date = new Date(Date.UTC(year, month - 1 - offset, 1));
+    const key = date.toISOString().slice(0, 7);
+    const summary = summarizeTransactions(transactions.filter((item) => item.date.slice(0, 7) === key));
+    result.push({ month: key, ...summary });
+  }
+  return result;
+}
