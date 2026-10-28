@@ -3,10 +3,28 @@ import type { FormEvent } from "react";
 import { ArrowDownLeft, ArrowUpRight, Bell, Download, Plus, Search, Target, Trash2, Wallet, X } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { initialTransactions } from "./data/seed";
-import { filterTransactions, getSpendingByCategory, summarizeTransactions, transactionsToCsv } from "./lib/finance";
+import { filterTransactions, getSpendingByCategory, getMonthlyBudgetProgress, summarizeTransactions, transactionsToCsv } from "./lib/finance";
+import type { CategoryBudget } from "./lib/finance";
 import type { Transaction, TransactionType } from "./types/finance";
 
 const STORAGE_KEY = "fintrack.transactions.v1";
+const BUDGET_STORAGE_KEY = "fintrack.category-budgets.v1";
+const budgetCategories = ["Food", "Housing", "Transport", "Entertainment", "Education", "Health", "Other"];
+
+function readBudgets(): CategoryBudget[] {
+  try {
+    const value = localStorage.getItem(BUDGET_STORAGE_KEY);
+    if (!value) return [];
+    const parsed: unknown = JSON.parse(value);
+    if (Array.isArray(parsed)) return parsed.filter((item): item is CategoryBudget =>
+      typeof item === "object" && item !== null &&
+      typeof item.category === "string" && budgetCategories.includes(item.category) &&
+      typeof item.limit === "number" && Number.isFinite(item.limit) && item.limit > 0);
+  } catch {
+    // Use empty budgets if storage is unavailable.
+  }
+  return [];
+}
 const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 const colors = ["#9ba7ff", "#4ed6b0", "#ffbd69", "#f18fa5", "#a78bfa", "#64b5f6"];
 
@@ -25,6 +43,9 @@ function readTransactions(): Transaction[] {
 
 export default function App() {
   const [transactions, setTransactions] = useState<Transaction[]>(readTransactions);
+  const [budgets, setBudgets] = useState<CategoryBudget[]>(readBudgets);
+  const [budgetCategory, setBudgetCategory] = useState("Food");
+  const [budgetLimit, setBudgetLimit] = useState("");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | TransactionType>("all");
   const [modal, setModal] = useState(false);
@@ -33,6 +54,13 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
   }, [transactions]);
+
+  useEffect(() => {
+    try { localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(budgets)); } catch { /* Storage may be disabled. */ }
+  }, [budgets]);
+
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const budgetProgress = useMemo(() => getMonthlyBudgetProgress(transactions, budgets, currentMonth), [transactions, budgets, currentMonth]);
 
   const { income, expenses, balance } = useMemo(
     () => summarizeTransactions(transactions),
@@ -121,12 +149,29 @@ export default function App() {
               {spending.length ? <div className="chart-layout"><div className="donut"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={spending} dataKey="value" nameKey="name" innerRadius="67%" outerRadius="92%" paddingAngle={4} stroke="none">{spending.map((item) => <Cell key={item.name} fill={item.color} />)}</Pie><Tooltip formatter={(value) => money.format(Number(value))} contentStyle={{ background: "#182235", border: "1px solid #303d52", borderRadius: 10 }} /></PieChart></ResponsiveContainer><div className="donut-center"><span>Total spent</span><strong>{money.format(expenses)}</strong></div></div><div className="legend">{spending.slice(0, 5).map((item) => <div className="legend-item" key={item.name}><i style={{ background: item.color }} /><span>{item.name}</span><strong>{money.format(item.value)}</strong></div>)}</div></div> : <p className="empty">Add an expense to see your spending breakdown.</p>}
             </article>
             <article className="panel content-panel"><div className="section-head"><div><h2>Monthly budgets</h2><p>Keep spending on track</p></div><span className="tag">This month</span></div>
-              {[
-                { name: "Housing", spent: 1250, limit: 1500, color: "#9ba7ff" },
-                { name: "Food", spent: 420, limit: 600, color: "#4ed6b0" },
-                { name: "Transport", spent: 145, limit: 250, color: "#ffbd69" },
-                { name: "Entertainment", spent: 92, limit: 180, color: "#f18fa5" }
-              ].map((item) => <div className="budget" key={item.name}><div><span>{item.name}</span><small>{money.format(item.spent)} / {money.format(item.limit)}</small></div><div className="progress"><span style={{ width: `${Math.min(100, item.spent / item.limit * 100)}%`, background: item.color }} /></div></div>)}
+              <form onSubmit={(event) => {
+                event.preventDefault();
+                const limit = Number(budgetLimit);
+                if (!Number.isFinite(limit) || limit <= 0) { notify("Enter a positive budget limit."); return; }
+                setBudgets((current) => [...current.filter((item) => item.category !== budgetCategory), { category: budgetCategory, limit }]);
+                setBudgetLimit("");
+                notify("Category budget saved.");
+              }} style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+                <select aria-label="Budget category" value={budgetCategory} onChange={(event) => setBudgetCategory(event.target.value)} style={{ flex: "1 1 120px", minWidth: 0 }}>
+                  {budgetCategories.map((category) => <option key={category}>{category}</option>)}
+                </select>
+                <input aria-label="Monthly budget limit in USD" type="number" min="0.01" step="0.01" required placeholder="Limit (USD)" value={budgetLimit} onChange={(event) => setBudgetLimit(event.target.value)} style={{ flex: "1 1 110px", minWidth: 0 }} />
+                <button type="submit" className="button-primary">Save</button>
+              </form>
+              {budgetProgress.length === 0 && <p className="empty">No budgets yet. Set a monthly limit for a category above.</p>}
+              {budgetProgress.map((item, index) => <div className="budget" key={item.category}>
+                <div><span>{item.category}{item.exceeded ? " · Over budget" : ""}</span><small>{money.format(item.spent)} / {money.format(item.limit)}</small></div>
+                <div className="progress"><span style={{ width: `${Math.min(100, item.percentage)}%`, background: item.exceeded ? "#f18fa5" : colors[index % colors.length] }} /></div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4, marginBottom: 12 }}>
+                  <small>{item.remaining >= 0 ? `${money.format(item.remaining)} left` : `${money.format(-item.remaining)} over limit`}</small>
+                  <button type="button" className="delete" aria-label={`Remove budget for ${item.category}`} onClick={() => setBudgets((current) => current.filter((budget) => budget.category !== item.category))}><Trash2 size={15} /></button>
+                </div>
+              </div>)}
               <div className="budget-foot"><Target size={16} /> You're building healthier money habits.</div>
             </article>
           </section>

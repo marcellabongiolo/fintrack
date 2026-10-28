@@ -3,6 +3,7 @@ import type { Transaction } from "../types/finance";
 import {
   filterTransactions,
   getSpendingByCategory,
+  getMonthlyBudgetProgress,
   summarizeTransactions,
   transactionsToCsv,
 } from "./finance";
@@ -115,5 +116,34 @@ describe("transactionsToCsv", () => {
     expect(transactionsToCsv([unusualTransaction])).toContain(
       '"2026-10-14","Dinner, ""with friends""","Food","expense","45.00"',
     );
+  });
+});
+
+describe("getMonthlyBudgetProgress", () => {
+  it("counts only expenses for the selected month and category", () => {
+    const result = getMonthlyBudgetProgress([
+      ...transactions,
+      { id: "older", title: "Older food", category: "Food", date: "2026-09-12", amount: 50, type: "expense" },
+    ], [{ category: "Food", limit: 150 }], "2026-10");
+    expect(result).toEqual([{
+      category: "Food", limit: 150, spent: 100, remaining: 50,
+      percentage: 100 / 150 * 100, exceeded: false,
+    }]);
+  });
+
+  it("reports over-budget spending and ignores invalid limits", () => {
+    const result = getMonthlyBudgetProgress(transactions, [
+      { category: "Housing", limit: 900 },
+      { category: "Food", limit: 0 },
+    ], "2026-10");
+    expect(result).toEqual([{
+      category: "Housing", limit: 900, spent: 1000, remaining: -100,
+      percentage: 1000 / 900 * 100, exceeded: true,
+    }]);
+  });
+
+  it("returns zero spending when no transactions match the month", () => {
+    expect(getMonthlyBudgetProgress(transactions, [{ category: "Food", limit: 200 }], "2026-11")[0])
+      .toMatchObject({ spent: 0, remaining: 200, percentage: 0, exceeded: false });
   });
 });
