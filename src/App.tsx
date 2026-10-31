@@ -168,8 +168,8 @@ export default function App() {
         <div className="workspace"><span className="workspace-avatar">P</span><span><strong>Personal space</strong><small>Free plan</small></span></div>
         <p className="side-label menu-label">MENU</p>
         <div className="nav-item active" aria-current="page"><span>◈</span> Overview</div>
-        <div className="nav-item" aria-label="Transactions section"><ArrowUpRight size={17} /> Transactions</div>
-        <div className="nav-item" aria-label="Budgets section"><Target size={17} /> Budgets</div>
+        <a className="nav-item" href="#transactions"><ArrowUpRight size={17} /> Transactions</a>
+        <a className="nav-item" href="#budgets"><Target size={17} /> Budgets</a>
         <div className="sidebar-note"><span>✦</span><strong>Money, made clearer.</strong><p>Build better habits, one step at a time.</p></div>
         <div className="profile"><span className="avatar">JD</span><span><strong>Jordan Davis</strong><small>Demo account</small></span></div>
       </aside>
@@ -191,7 +191,7 @@ export default function App() {
             <article className="panel content-panel"><div className="section-head"><div><h2>Spending breakdown</h2><p>Where your money is going</p></div><span className="tag">All time</span></div>
               {spending.length ? <div className="chart-layout"><div className="donut"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={spending} dataKey="value" nameKey="name" innerRadius="67%" outerRadius="92%" paddingAngle={4} stroke="none">{spending.map((item) => <Cell key={item.name} fill={item.color} />)}</Pie><Tooltip formatter={(value) => money.format(Number(value))} contentStyle={{ background: "#182235", border: "1px solid #303d52", borderRadius: 10 }} /></PieChart></ResponsiveContainer><div className="donut-center"><span>Total spent</span><strong>{money.format(expenses)}</strong></div></div><div className="legend">{spending.slice(0, 5).map((item) => <div className="legend-item" key={item.name}><i style={{ background: item.color }} /><span>{item.name}</span><strong>{money.format(item.value)}</strong></div>)}</div></div> : <p className="empty">Add an expense to see your spending breakdown.</p>}
             </article>
-            <article className="panel content-panel"><div className="section-head"><div><h2>Monthly budgets</h2><p>Keep spending on track</p></div><span className="tag">This month</span></div>
+            <article id="budgets" className="panel content-panel" aria-label="Monthly budgets"><div className="section-head"><div><h2>Monthly budgets</h2><p>Keep spending on track</p></div><span className="tag">This month</span></div>
               <form onSubmit={(event) => {
                 event.preventDefault();
                 const limit = Number(budgetLimit);
@@ -239,7 +239,7 @@ export default function App() {
             <p style={{ color: "#94a3b8", fontSize: 13 }}>Current month balance: {money.format(cashflow[cashflow.length - 1].balance)}</p>
           </section>
 
-          <section className="panel transactions-panel" aria-label="Recent transactions"><div className="section-head"><div><h2>Recent transactions</h2><p>Keep an eye on where your money goes.</p></div><span className="tag" role="status" aria-live="polite">{visible.length} items</span></div>
+          <section id="transactions" className="panel transactions-panel" aria-label="Recent transactions"><div className="section-head"><div><h2>Recent transactions</h2><p>Keep an eye on where your money goes.</p></div><span className="tag" role="status" aria-live="polite">{visible.length} items</span></div>
             <div className="tools"><label className="search"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search transactions" aria-label="Search transactions" /></label><select value={filter} onChange={(event) => setFilter(event.target.value as "all" | TransactionType)} aria-label="Filter transactions"><option value="all">All activity</option><option value="income">Income</option><option value="expense">Expenses</option></select></div>
             {visible.length === 0 ? <p className="empty">No transactions match your search.</p> : visible.map((item) => <div className="transaction" key={item.id}><span className={`transaction-icon ${item.type}`}>{item.type === "income" ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}</span><div className="transaction-info"><strong>{item.title}</strong><small>{item.category} · {new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(new Date(`${item.date}T12:00:00`))}</small></div><strong className={item.type === "income" ? "positive" : ""}>{item.type === "income" ? "+" : "−"}{money.format(item.amount)}</strong><button className="delete" aria-label={`Delete ${item.title}`} onClick={() => { setTransactions((current) => current.filter((transaction) => transaction.id !== item.id)); notify("Transaction deleted."); }}><Trash2 size={15} /></button></div>)}
           </section>
