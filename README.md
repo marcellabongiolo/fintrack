@@ -1,6 +1,8 @@
 # FinTrack
 
-A modern, responsive personal finance dashboard built with React, TypeScript, Vite, and Recharts.
+A responsive, browser-based personal finance dashboard built with React, TypeScript, Vite, and Recharts. This portfolio project demonstrates typed frontend development, financial data transformations, automated UI testing, keyboard accessibility and continuous integration.
+
+**Quick links:** [Live demo](https://marcellabongiolo.github.io/fintrack/) · [Source code](https://github.com/marcellabongiolo/fintrack) · [CI checks](https://github.com/marcellabongiolo/fintrack/actions)
 
 ## 🚀 Live demo
 
@@ -59,7 +61,7 @@ npm run preview
 
 ## Automated tests
 
-FinTrack uses [Vitest](https://vitest.dev/) to test the core finance utilities, including balance calculations, spending totals, transaction filtering, and CSV escaping.
+FinTrack uses [Vitest](https://vitest.dev/) for unit tests of finance utilities (balances, category spending, monthly cashflow, budgets, filtering and CSV escaping) and **React Testing Library with jsdom** for dashboard interaction tests (search, adding transactions, dialog keyboard focus, blocked browser storage, skip navigation, live result counts and budget progress semantics).
 
 Run the test suite once:
 
@@ -97,6 +99,7 @@ fintrack/
 │   │   ├── finance.ts
 │   │   └── finance.test.ts
 │   ├── App.tsx
+│   ├── App.test.tsx
 │   ├── main.tsx
 │   └── styles.css
 ├── .env.example
@@ -117,13 +120,21 @@ fintrack/
 - [x] Unit tests for finance calculations and CSV export
 - [x] GitHub Actions CI for tests and production build
 - [x] GitHub Pages deployment workflow
-- [ ] Component and accessibility tests
+- [x] Component interaction and targeted accessibility regression tests
 - [ ] Backend API and PostgreSQL database
 - [ ] Authentication and user-specific data
 - [ ] Recurring transactions and budget editing
 - [x] Keyboard-accessible transaction dialog and component interaction tests
 - [x] Dashboard keyboard skip link, live result counts and semantic budget progress tests
 - [ ] Independent comprehensive accessibility audit (including real browsers and screen readers)
+
+## Architecture and portfolio scope
+
+The React dashboard holds transactions and category budgets in component state. Pure TypeScript helpers in `src/lib/finance.ts` calculate financial summaries, spending, monthly cashflow, budgets, filtering and CSV export. The app reads and writes browser `localStorage` for demo persistence, with an in-memory fallback if storage is blocked. Charts are rendered with Recharts; tests cover both calculation helpers and representative UI interactions.
+
+**Quality checks:** Run `npm test` and `npm run build`. The GitHub Actions CI workflow runs both on pull requests to `main`. Accessibility improvements include a skip link, keyboard-managed transaction dialog, live search counts and labeled budget progress; these targeted tests are **not** a substitute for a full manual screen-reader and cross-browser audit.
+
+**What this version does not include:** backend API, database, login, multi-user synchronization or production financial-data security. These are future enhancements rather than existing features.
 
 ## Security notes
 
