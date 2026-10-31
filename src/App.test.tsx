@@ -25,6 +25,22 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 describe("FinTrack dashboard interactions", () => {
+  it("keeps the dashboard usable if localStorage writes are blocked", () => {
+    const setItem = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("Storage blocked"); });
+    try {
+      render(<App />);
+      expect(screen.getByRole("heading", { name: /Good morning, Jordan/ })).toBeTruthy();
+      fireEvent.click(screen.getByRole("button", { name: "Add transaction" }));
+      expect(screen.getByRole("dialog", { name: "Add transaction" })).toBeTruthy();
+    } finally { setItem.mockRestore(); }
+  });
+
+  it("marks the current sidebar section without implying navigation links", () => {
+    render(<App />);
+    expect(document.querySelector('[aria-current="page"]')?.textContent).toContain("Overview");
+    expect(screen.queryByRole("link", { name: "Transactions" })).toBeNull();
+  });
+
   it("opens a named dialog, focuses its first field and closes with Escape", () => {
     render(<App />);
     const trigger = screen.getByRole("button", { name: "Add transaction" });
