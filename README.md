@@ -19,6 +19,7 @@ Try the app directly in your browser — no installation required.
 - Monthly budget progress
 - CSV export for saved transactions
 - Responsive dashboard for desktop and mobile
+- Keyboard skip-to-content navigation, accessible transaction dialog, live search counts and budget progress descriptions
 - Browser local storage for demo persistence (falls back to in-memory session state when storage writes are blocked)
 - TypeScript for safer, maintainable UI code
 
@@ -121,7 +122,8 @@ fintrack/
 - [ ] Authentication and user-specific data
 - [ ] Recurring transactions and budget editing
 - [x] Keyboard-accessible transaction dialog and component interaction tests
-- [ ] Comprehensive accessibility audit
+- [x] Dashboard keyboard skip link, live result counts and semantic budget progress tests
+- [ ] Independent comprehensive accessibility audit (including real browsers and screen readers)
 
 ## Security notes
 
