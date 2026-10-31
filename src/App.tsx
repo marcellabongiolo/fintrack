@@ -33,7 +33,23 @@ function readTransactions(): Transaction[] {
     const value = localStorage.getItem(STORAGE_KEY);
     if (value) {
       const parsed: unknown = JSON.parse(value);
-      if (Array.isArray(parsed)) return parsed as Transaction[];
+      if (Array.isArray(parsed)) {
+        const seen = new Set<string>();
+        return parsed.filter((item): item is Transaction => {
+          if (typeof item !== "object" || item === null) return false;
+          const record = item as Record<string, unknown>;
+          if (typeof record.id !== "string" || !record.id || seen.has(record.id) ||
+              typeof record.title !== "string" || !record.title.trim() ||
+              typeof record.category !== "string" || !budgetCategories.concat(["Salary", "Freelance"]).includes(record.category) ||
+              (record.type !== "income" && record.type !== "expense") ||
+              typeof record.amount !== "number" || !Number.isFinite(record.amount) || record.amount <= 0 ||
+              typeof record.date !== "string" || !/^\\d{4}-\\d{2}-\\d{2}$/.test(record.date)) return false;
+          const date = new Date(record.date + "T12:00:00Z");
+          if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== record.date) return false;
+          seen.add(record.id);
+          return true;
+        });
+      }
     }
   } catch {
     // Use sample data if browser storage is unavailable.
