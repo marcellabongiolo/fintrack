@@ -25,6 +25,26 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 describe("FinTrack dashboard interactions", () => {
+  it("ignores malformed persisted transactions and retains valid records", () => {
+    const valid = { id: "valid-1", title: "Saved expense", category: "Food", date: "2026-10-01", amount: 12.5, type: "expense" };
+    localStorage.setItem("fintrack.transactions.v1", JSON.stringify([
+      null, { ...valid, id: "bad-amount", amount: "999" },
+      { ...valid, id: "bad-date", date: "2026-02-30" },
+      { ...valid, id: "bad-type", type: "refund" },
+      valid, { ...valid, title: "Duplicate ID" },
+    ]));
+    render(<App />);
+    expect(screen.getByText("Saved expense")).toBeTruthy();
+    expect(screen.queryByText("Duplicate ID")).toBeNull();
+    expect(screen.getByText("1 items")).toBeTruthy();
+  });
+
+  it("recovers from malformed browser storage JSON", () => {
+    localStorage.setItem("fintrack.transactions.v1", "{broken");
+    render(<App />);
+    expect(screen.getByText("Monthly salary")).toBeTruthy();
+  });
+
   it("provides a keyboard skip link to the main landmark", () => {
     render(<App />);
     const link = screen.getByRole("link", { name: "Skip to main content" });
