@@ -25,6 +25,30 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 describe("FinTrack dashboard interactions", () => {
+  it("provides a keyboard skip link to the main landmark", () => {
+    render(<App />);
+    const link = screen.getByRole("link", { name: "Skip to main content" });
+    expect(link.getAttribute("href")).toBe("#main-content");
+    expect(document.getElementById("main-content")?.tagName).toBe("MAIN");
+  });
+
+  it("announces filtered transaction counts", () => {
+    render(<App />);
+    fireEvent.change(screen.getByRole("textbox", { name: "Search transactions" }), { target: { value: "not-a-real-transaction-12345" } });
+    const count = screen.getAllByRole("status").find((element) => element.textContent?.includes("0 items"));
+    expect(count?.getAttribute("aria-live")).toBe("polite");
+  });
+
+  it("exposes budget usage to assistive technology", () => {
+    render(<App />);
+    fireEvent.change(screen.getByRole("spinbutton", { name: "Monthly budget limit in USD" }), { target: { value: "250" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    const bar = screen.getByRole("progressbar", { name: "Food monthly budget used" });
+    expect(bar.getAttribute("aria-valuemin")).toBe("0");
+    expect(bar.getAttribute("aria-valuemax")).toBe("100");
+    expect(bar.getAttribute("aria-valuetext")).toContain("spent of");
+  });
+
   it("keeps the dashboard usable if localStorage writes are blocked", () => {
     const setItem = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("Storage blocked"); });
     try {

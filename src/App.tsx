@@ -145,6 +145,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <a className="skip-link" href="#main-content">Skip to main content</a>
       <aside className="sidebar">
         <a className="brand" href="#"><span className="brand-mark"><Wallet size={21} /></span>fintrack<span className="brand-dot">.</span></a>
         <p className="side-label">WORKSPACE</p>
@@ -157,7 +158,7 @@ export default function App() {
         <div className="profile"><span className="avatar">JD</span><span><strong>Jordan Davis</strong><small>Demo account</small></span></div>
       </aside>
 
-      <main className="main-content">
+      <main id="main-content" className="main-content" tabIndex={-1}>
         <header className="topbar"><span className="crumb">Workspace <span>/</span> <strong>Overview</strong></span><div className="top-actions"><span className="today">{new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(new Date())}</span><button className="icon-button" aria-label="Notifications" onClick={() => notify("You're all caught up!")}><Bell size={18} /></button><span className="avatar small-avatar">JD</span></div></header>
         <div className="page-content">
           <section className="welcome"><div><div className="eyebrow"><span /> YOUR FINANCIAL SNAPSHOT</div><h1>Good morning, Jordan <span>✦</span></h1><p>Here's what's happening with your money today.</p></div><div className="welcome-buttons"><button className="button-secondary" onClick={exportCsv}><Download size={16} /> Export</button><button ref={addButtonRef} className="button-primary" onClick={() => setModal(true)}><Plus size={17} /> Add transaction</button></div></section>
@@ -192,7 +193,7 @@ export default function App() {
               {budgetProgress.length === 0 && <p className="empty">No budgets yet. Set a monthly limit for a category above.</p>}
               {budgetProgress.map((item, index) => <div className="budget" key={item.category}>
                 <div><span>{item.category}{item.exceeded ? " · Over budget" : ""}</span><small>{money.format(item.spent)} / {money.format(item.limit)}</small></div>
-                <div className="progress"><span style={{ width: `${Math.min(100, item.percentage)}%`, background: item.exceeded ? "#f18fa5" : colors[index % colors.length] }} /></div>
+                <div className="progress" role="progressbar" aria-label={`${item.category} monthly budget used`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(100, Math.round(item.percentage))} aria-valuetext={`${money.format(item.spent)} spent of ${money.format(item.limit)}${item.exceeded ? ", over budget" : ""}`}><span style={{ width: `${Math.min(100, item.percentage)}%`, background: item.exceeded ? "#f18fa5" : colors[index % colors.length] }} /></div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4, marginBottom: 12 }}>
                   <small>{item.remaining >= 0 ? `${money.format(item.remaining)} left` : `${money.format(-item.remaining)} over limit`}</small>
                   <button type="button" className="delete" aria-label={`Remove budget for ${item.category}`} onClick={() => setBudgets((current) => current.filter((budget) => budget.category !== item.category))}><Trash2 size={15} /></button>
@@ -222,7 +223,7 @@ export default function App() {
             <p style={{ color: "#94a3b8", fontSize: 13 }}>Current month balance: {money.format(cashflow[cashflow.length - 1].balance)}</p>
           </section>
 
-          <section className="panel transactions-panel" aria-label="Recent transactions"><div className="section-head"><div><h2>Recent transactions</h2><p>Keep an eye on where your money goes.</p></div><span className="tag">{visible.length} items</span></div>
+          <section className="panel transactions-panel" aria-label="Recent transactions"><div className="section-head"><div><h2>Recent transactions</h2><p>Keep an eye on where your money goes.</p></div><span className="tag" role="status" aria-live="polite">{visible.length} items</span></div>
             <div className="tools"><label className="search"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search transactions" aria-label="Search transactions" /></label><select value={filter} onChange={(event) => setFilter(event.target.value as "all" | TransactionType)} aria-label="Filter transactions"><option value="all">All activity</option><option value="income">Income</option><option value="expense">Expenses</option></select></div>
             {visible.length === 0 ? <p className="empty">No transactions match your search.</p> : visible.map((item) => <div className="transaction" key={item.id}><span className={`transaction-icon ${item.type}`}>{item.type === "income" ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}</span><div className="transaction-info"><strong>{item.title}</strong><small>{item.category} · {new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(new Date(`${item.date}T12:00:00`))}</small></div><strong className={item.type === "income" ? "positive" : ""}>{item.type === "income" ? "+" : "−"}{money.format(item.amount)}</strong><button className="delete" aria-label={`Delete ${item.title}`} onClick={() => { setTransactions((current) => current.filter((transaction) => transaction.id !== item.id)); notify("Transaction deleted."); }}><Trash2 size={15} /></button></div>)}
           </section>
