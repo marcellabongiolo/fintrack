@@ -75,7 +75,7 @@ export default function App() {
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions)); } catch { /* Continue in memory when storage is unavailable. */ }
   }, [transactions]);
 
   useEffect(() => {
@@ -150,9 +150,9 @@ export default function App() {
         <p className="side-label">WORKSPACE</p>
         <div className="workspace"><span className="workspace-avatar">P</span><span><strong>Personal space</strong><small>Free plan</small></span></div>
         <p className="side-label menu-label">MENU</p>
-        <div className="nav-item active"><span>◈</span> Overview</div>
-        <div className="nav-item"><ArrowUpRight size={17} /> Transactions</div>
-        <div className="nav-item"><Target size={17} /> Budgets</div>
+        <div className="nav-item active" aria-current="page"><span>◈</span> Overview</div>
+        <div className="nav-item" aria-label="Transactions section"><ArrowUpRight size={17} /> Transactions</div>
+        <div className="nav-item" aria-label="Budgets section"><Target size={17} /> Budgets</div>
         <div className="sidebar-note"><span>✦</span><strong>Money, made clearer.</strong><p>Build better habits, one step at a time.</p></div>
         <div className="profile"><span className="avatar">JD</span><span><strong>Jordan Davis</strong><small>Demo account</small></span></div>
       </aside>

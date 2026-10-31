@@ -19,7 +19,7 @@ Try the app directly in your browser — no installation required.
 - Monthly budget progress
 - CSV export for saved transactions
 - Responsive dashboard for desktop and mobile
-- Browser local storage for demo persistence
+- Browser local storage for demo persistence (falls back to in-memory session state when storage writes are blocked)
 - TypeScript for safer, maintainable UI code
 
 ## Tech stack
@@ -120,7 +120,8 @@ fintrack/
 - [ ] Backend API and PostgreSQL database
 - [ ] Authentication and user-specific data
 - [ ] Recurring transactions and budget editing
-- [ ] Accessibility review
+- [x] Keyboard-accessible transaction dialog and component interaction tests
+- [ ] Comprehensive accessibility audit
 
 ## Security notes
 
