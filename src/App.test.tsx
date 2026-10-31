@@ -79,10 +79,13 @@ describe("FinTrack dashboard interactions", () => {
     } finally { setItem.mockRestore(); }
   });
 
-  it("marks the current sidebar section without implying navigation links", () => {
+  it("provides accessible links to dashboard sections", () => {
     render(<App />);
     expect(document.querySelector('[aria-current="page"]')?.textContent).toContain("Overview");
-    expect(screen.queryByRole("link", { name: "Transactions" })).toBeNull();
+    expect(screen.getByRole("link", { name: "Transactions" }).getAttribute("href")).toBe("#transactions");
+    expect(screen.getByRole("link", { name: "Budgets" }).getAttribute("href")).toBe("#budgets");
+    expect(document.getElementById("transactions")?.getAttribute("aria-label")).toBe("Recent transactions");
+    expect(document.getElementById("budgets")?.getAttribute("aria-label")).toBe("Monthly budgets");
   });
 
   it("opens a named dialog, focuses its first field and closes with Escape", () => {
