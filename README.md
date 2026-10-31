@@ -20,9 +20,9 @@ Try the app directly in your browser — no installation required.
 - Search transactions and filter by type
 - Monthly budget progress
 - CSV export for saved transactions
-- Responsive dashboard for desktop and mobile
+- Responsive dashboard for desktop and mobile, with working Transactions and Budgets section links on both screen sizes
 - Keyboard skip-to-content navigation, accessible transaction dialog, live search counts and budget progress descriptions
-- Browser local storage for demo persistence (falls back to in-memory session state when storage writes are blocked)
+- Browser local storage for demo persistence; malformed saved transactions are filtered on load, invalid JSON falls back to sample data, and blocked writes leave the current session usable
 - TypeScript for safer, maintainable UI code
 
 ## Tech stack
@@ -61,7 +61,7 @@ npm run preview
 
 ## Automated tests
 
-FinTrack uses [Vitest](https://vitest.dev/) for unit tests of finance utilities (balances, category spending, monthly cashflow, budgets, filtering and CSV escaping) and **React Testing Library with jsdom** for dashboard interaction tests (search, adding transactions, dialog keyboard focus, blocked browser storage, skip navigation, live result counts and budget progress semantics).
+FinTrack uses [Vitest](https://vitest.dev/) for unit tests of finance utilities (balances, category spending, monthly cashflow, budgets, filtering and CSV escaping) and **React Testing Library with jsdom** for dashboard interaction tests (search, adding transactions, dialog keyboard focus, blocked or corrupted browser storage, skip navigation, sidebar section links, live result counts and budget progress semantics). A CSS regression test checks that mobile navigation remains visible.
 
 Run the test suite once:
 
@@ -100,6 +100,7 @@ fintrack/
 │   │   └── finance.test.ts
 │   ├── App.tsx
 │   ├── App.test.tsx
+│   ├── styles.test.ts
 │   ├── main.tsx
 │   └── styles.css
 ├── .env.example
@@ -127,15 +128,21 @@ fintrack/
 - [ ] Recurring transactions and budget editing
 - [x] Keyboard-accessible transaction dialog and component interaction tests
 - [x] Dashboard keyboard skip link, live result counts and semantic budget progress tests
+- [x] Working desktop/mobile section navigation and mobile CSS regression test
+- [x] Persisted transaction validation and corrupted-storage recovery tests
 - [ ] Independent comprehensive accessibility audit (including real browsers and screen readers)
 
 ## Architecture and portfolio scope
 
 The React dashboard holds transactions and category budgets in component state. Pure TypeScript helpers in `src/lib/finance.ts` calculate financial summaries, spending, monthly cashflow, budgets, filtering and CSV export. The app reads and writes browser `localStorage` for demo persistence, with an in-memory fallback if storage is blocked. Charts are rendered with Recharts; tests cover both calculation helpers and representative UI interactions.
 
-**Quality checks:** Run `npm test` and `npm run build`. The GitHub Actions CI workflow runs both on pull requests to `main`. Accessibility improvements include a skip link, keyboard-managed transaction dialog, live search counts and labeled budget progress; these targeted tests are **not** a substitute for a full manual screen-reader and cross-browser audit.
+**Quality checks:** Run `npm test` and `npm run build`. The GitHub Actions CI workflow runs both on pull requests to `main`. Accessibility improvements include a skip link, keyboard-managed transaction dialog, working section links on mobile and desktop, live search counts and labeled budget progress; these targeted tests are **not** a substitute for a full manual screen-reader and cross-browser audit.
 
 **What this version does not include:** backend API, database, login, multi-user synchronization or production financial-data security. These are future enhancements rather than existing features.
+
+## Final verification checklist
+
+Before sharing this portfolio project with a recruiter, check the live demo on a desktop and a phone: open Transactions and Budgets from the navigation, add and remove a sample transaction, search, set a budget, export a CSV and refresh to confirm demo persistence. Check the [GitHub Actions runs](https://github.com/marcellabongiolo/fintrack/actions) for a successful deployment after the latest merge. Automated tests and a successful build do not by themselves prove that the deployed site is current or that every browser and screen reader works correctly.
 
 ## Security notes
 
