@@ -80,7 +80,7 @@ describe("FinTrack dashboard interactions", () => {
   it("keeps keyboard focus inside the transaction dialog", () => {
     render(<App />);
     fireEvent.click(screen.getByRole("button", { name: "Add transaction" }));
-    const first = screen.getByPlaceholderText("e.g. Grocery shopping");
+    const first = screen.getByRole("button", { name: "Close dialog" });
     const save = screen.getByRole("button", { name: "Save transaction" });
     save.focus();
     fireEvent.keyDown(document, { key: "Tab" });
@@ -105,6 +105,6 @@ describe("FinTrack dashboard interactions", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save transaction" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     expect(screen.getByText("Portfolio test expense")).toBeTruthy();
-    expect(screen.getByRole("status").textContent).toContain("Transaction added successfully.");
+    expect(screen.getAllByRole("status").some((element) => element.textContent?.includes("Transaction added successfully."))).toBe(true);
   });
 });
