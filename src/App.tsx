@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { ArrowDownLeft, ArrowUpRight, Bell, Download, Plus, Search, Target, Trash2, Wallet, X } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -49,6 +49,29 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | TransactionType>("all");
   const [modal, setModal] = useState(false);
+  const addButtonRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!modal) return;
+    const dialog = dialogRef.current;
+    const firstField = dialog?.querySelector<HTMLInputElement>('input[name="title"]');
+    firstField?.focus();
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setModal(false);
+        return;
+      }
+      if (event.key !== "Tab" || !dialog) return;
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), select:not([disabled])'));
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => { document.removeEventListener("keydown", onKeyDown); addButtonRef.current?.focus(); };
+  }, [modal]);
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
@@ -137,7 +160,7 @@ export default function App() {
       <main className="main-content">
         <header className="topbar"><span className="crumb">Workspace <span>/</span> <strong>Overview</strong></span><div className="top-actions"><span className="today">{new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(new Date())}</span><button className="icon-button" aria-label="Notifications" onClick={() => notify("You're all caught up!")}><Bell size={18} /></button><span className="avatar small-avatar">JD</span></div></header>
         <div className="page-content">
-          <section className="welcome"><div><div className="eyebrow"><span /> YOUR FINANCIAL SNAPSHOT</div><h1>Good morning, Jordan <span>✦</span></h1><p>Here's what's happening with your money today.</p></div><div className="welcome-buttons"><button className="button-secondary" onClick={exportCsv}><Download size={16} /> Export</button><button className="button-primary" onClick={() => setModal(true)}><Plus size={17} /> Add transaction</button></div></section>
+          <section className="welcome"><div><div className="eyebrow"><span /> YOUR FINANCIAL SNAPSHOT</div><h1>Good morning, Jordan <span>✦</span></h1><p>Here's what's happening with your money today.</p></div><div className="welcome-buttons"><button className="button-secondary" onClick={exportCsv}><Download size={16} /> Export</button><button ref={addButtonRef} className="button-primary" onClick={() => setModal(true)}><Plus size={17} /> Add transaction</button></div></section>
 
           <section className="stats">
             <article className="panel stat"><div className="stat-head">Total balance <span className="stat-icon purple"><Wallet size={18} /></span></div><strong>{money.format(balance)}</strong><small>Income minus expenses</small></article>
@@ -199,7 +222,7 @@ export default function App() {
             <p style={{ color: "#94a3b8", fontSize: 13 }}>Current month balance: {money.format(cashflow[cashflow.length - 1].balance)}</p>
           </section>
 
-          <section className="panel transactions-panel"><div className="section-head"><div><h2>Recent transactions</h2><p>Keep an eye on where your money goes.</p></div><span className="tag">{visible.length} items</span></div>
+          <section className="panel transactions-panel" aria-label="Recent transactions"><div className="section-head"><div><h2>Recent transactions</h2><p>Keep an eye on where your money goes.</p></div><span className="tag">{visible.length} items</span></div>
             <div className="tools"><label className="search"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search transactions" aria-label="Search transactions" /></label><select value={filter} onChange={(event) => setFilter(event.target.value as "all" | TransactionType)} aria-label="Filter transactions"><option value="all">All activity</option><option value="income">Income</option><option value="expense">Expenses</option></select></div>
             {visible.length === 0 ? <p className="empty">No transactions match your search.</p> : visible.map((item) => <div className="transaction" key={item.id}><span className={`transaction-icon ${item.type}`}>{item.type === "income" ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}</span><div className="transaction-info"><strong>{item.title}</strong><small>{item.category} · {new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(new Date(`${item.date}T12:00:00`))}</small></div><strong className={item.type === "income" ? "positive" : ""}>{item.type === "income" ? "+" : "−"}{money.format(item.amount)}</strong><button className="delete" aria-label={`Delete ${item.title}`} onClick={() => { setTransactions((current) => current.filter((transaction) => transaction.id !== item.id)); notify("Transaction deleted."); }}><Trash2 size={15} /></button></div>)}
           </section>
@@ -207,7 +230,7 @@ export default function App() {
         </div>
       </main>
 
-      {modal && <div className="backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setModal(false); }}><section className="modal panel" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div className="section-head"><div><h2 id="modal-title">Add transaction</h2><p>Record money coming in or going out.</p></div><button className="icon-button" onClick={() => setModal(false)} aria-label="Close dialog"><X size={19} /></button></div><form onSubmit={addTransaction}><label>Description<input name="title" required maxLength={70} placeholder="e.g. Grocery shopping" /></label><label>Amount (USD)<input name="amount" required type="number" min="0.01" step="0.01" placeholder="0.00" /></label><div className="form-row"><label>Type<select name="type"><option value="expense">Expense</option><option value="income">Income</option></select></label><label>Category<select name="category">{["Food","Housing","Transport","Entertainment","Education","Health","Salary","Freelance","Other"].map((category) => <option key={category}>{category}</option>)}</select></label></div><label>Date<input name="date" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} /></label><div className="modal-actions"><button type="button" className="button-secondary" onClick={() => setModal(false)}>Cancel</button><button type="submit" className="button-primary">Save transaction</button></div></form></section></div>}
+      {modal && <div className="backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setModal(false); }}><section ref={dialogRef} className="modal panel" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div className="section-head"><div><h2 id="modal-title">Add transaction</h2><p>Record money coming in or going out.</p></div><button className="icon-button" onClick={() => setModal(false)} aria-label="Close dialog"><X size={19} /></button></div><form onSubmit={addTransaction}><label>Description<input name="title" required maxLength={70} placeholder="e.g. Grocery shopping" /></label><label>Amount (USD)<input name="amount" required type="number" min="0.01" step="0.01" placeholder="0.00" /></label><div className="form-row"><label>Type<select name="type"><option value="expense">Expense</option><option value="income">Income</option></select></label><label>Category<select name="category">{["Food","Housing","Transport","Entertainment","Education","Health","Salary","Freelance","Other"].map((category) => <option key={category}>{category}</option>)}</select></label></div><label>Date<input name="date" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} /></label><div className="modal-actions"><button type="button" className="button-secondary" onClick={() => setModal(false)}>Cancel</button><button type="submit" className="button-primary">Save transaction</button></div></form></section></div>}
       {notice && <div className="toast" role="status">✓ {notice}<button onClick={() => setNotice("")} aria-label="Dismiss">×</button></div>}
     </div>
   );
