@@ -22,8 +22,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run unit tests
+      - name: Run unit and component tests
         run: npm test
+
+      - name: Verify dashboard component tests are discovered
+        run: npx vitest list src/App.test.tsx --config vitest.config.ts
 
       - name: Build production app
         run: npm run build

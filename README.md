@@ -75,7 +75,7 @@ Run tests in watch mode while developing:
 npm run test:watch
 ```
 
-GitHub Actions also runs the unit tests and production build for pushes and pull requests targeting `main`.
+GitHub Actions runs the unit and React component tests, verifies that `src/App.test.tsx` is discovered, and builds the production app for pushes and pull requests targeting `main`.
 
 ## Deployment
 
@@ -108,6 +108,7 @@ fintrack/
 ├── index.html
 ├── package.json
 ├── tsconfig*.json
+├── vitest.config.ts
 └── vite.config.ts
 ```
 
