@@ -43,7 +43,7 @@ function readTransactions(): Transaction[] {
               typeof record.category !== "string" || !budgetCategories.concat(["Salary", "Freelance"]).includes(record.category) ||
               (record.type !== "income" && record.type !== "expense") ||
               typeof record.amount !== "number" || !Number.isFinite(record.amount) || record.amount <= 0 ||
-              typeof record.date !== "string" || !/^\\d{4}-\\d{2}-\\d{2}$/.test(record.date)) return false;
+              typeof record.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(record.date)) return false;
           const date = new Date(record.date + "T12:00:00Z");
           if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== record.date) return false;
           seen.add(record.id);
