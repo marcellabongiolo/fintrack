@@ -30,3 +30,6 @@ jobs:
 
       - name: Build production app
         run: npm run build
+
+      - name: Reject high and critical dependency vulnerabilities
+        run: npm audit --audit-level=high

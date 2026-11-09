@@ -75,7 +75,12 @@ export function transactionsToCsv(transactions: Transaction[]): string {
   return rows
     .map((row) =>
       row
-        .map((field) => `"${String(field).replace(/"/g, '""')}"`)
+        .map((field) => {
+          const text = String(field);
+          // CSV quoting does not stop spreadsheet formula evaluation.
+          const safe = /^[\s\uFEFF]*[=+@\-\t\r\n]/.test(text) ? "'" + text : text;
+          return `"${safe.replace(/"/g, '""')}"`;
+        })
         .join(","),
     )
     .join("\r\n");
