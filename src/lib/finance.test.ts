@@ -175,3 +175,13 @@ describe("getMonthlyCashflow", () => {
     expect(() => getMonthlyCashflow([], "2026-10", 0)).toThrow();
   });
 });
+
+
+describe("CSV formula protection", () => {
+  it.each(["=1+1", "+SUM(A1:A2)", "-1+1", "@SUM(A1:A2)", "  =1+1", "\tcommand", "\rcommand", "\ncommand"])("exports %j as text", (value) => {
+    const item = { ...transactions[0], title: value, category: value };
+    const csv = transactionsToCsv([item]);
+    expect(csv).toContain(`"'${value}"`);
+    expect(csv).not.toContain(`,"${value}",`);
+  });
+});

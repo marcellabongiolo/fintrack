@@ -19,7 +19,7 @@ Try the app directly in your browser — no installation required.
 - Add and delete income/expense transactions
 - Search transactions and filter by type
 - Monthly budget progress
-- CSV export for saved transactions
+- CSV export for saved transactions, with formula-like text prefixed by an apostrophe for spreadsheet safety
 - Responsive dashboard for desktop and mobile, with working Transactions and Budgets section links on both screen sizes
 - Keyboard skip-to-content navigation, accessible transaction dialog, live search counts and budget progress descriptions
 - Browser local storage for demo persistence; malformed saved transactions are filtered on load, invalid JSON falls back to sample data, and blocked writes leave the current session usable
@@ -37,7 +37,7 @@ Try the app directly in your browser — no installation required.
 
 ### Requirements
 
-- Node.js 20.19+ or 22.12+ recommended
+- Node.js 22.12+ or 24+
 - npm
 - Git
 
@@ -46,7 +46,7 @@ Try the app directly in your browser — no installation required.
 ```bash
 git clone https://github.com/marcellabongiolo/fintrack.git
 cd fintrack
-npm install
+npm ci
 npm run dev
 ```
 
@@ -61,7 +61,7 @@ npm run preview
 
 ## Automated tests
 
-FinTrack uses [Vitest](https://vitest.dev/) for unit tests of finance utilities (balances, category spending, monthly cashflow, budgets, filtering and CSV escaping) and **React Testing Library with jsdom** for dashboard interaction tests (search, adding transactions, dialog keyboard focus, blocked or corrupted browser storage, skip navigation, sidebar section links, live result counts and budget progress semantics). A CSS regression test checks that mobile navigation remains visible.
+FinTrack uses [Vitest](https://vitest.dev/) for unit tests of finance utilities (balances, category spending, monthly cashflow, budgets, filtering and CSV escaping) and **React Testing Library with jsdom** for dashboard interaction tests (search, adding transactions, dialog keyboard focus, blocked or corrupted browser storage, skip navigation, sidebar section links, live result counts and budget progress semantics). Mobile layout still requires manual browser verification.
 
 Run the test suite once:
 
@@ -100,7 +100,6 @@ fintrack/
 │   │   └── finance.test.ts
 │   ├── App.tsx
 │   ├── App.test.tsx
-│   ├── styles.test.ts
 │   ├── main.tsx
 │   └── styles.css
 ├── .env.example
@@ -128,7 +127,7 @@ fintrack/
 - [ ] Recurring transactions and budget editing
 - [x] Keyboard-accessible transaction dialog and component interaction tests
 - [x] Dashboard keyboard skip link, live result counts and semantic budget progress tests
-- [x] Working desktop/mobile section navigation and mobile CSS regression test
+- [x] Working desktop/mobile section navigation
 - [x] Persisted transaction validation and corrupted-storage recovery tests
 - [ ] Independent comprehensive accessibility audit (including real browsers and screen readers)
 
