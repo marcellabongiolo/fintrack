@@ -20,8 +20,7 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: npm install
-      - run: node -e "console.log('AUDIT_LOCK_START' + JSON.stringify(require('./package-lock.json')) + 'AUDIT_LOCK_END')"
+        run: npm ci
 
       - name: Run unit and component tests
         run: npm test

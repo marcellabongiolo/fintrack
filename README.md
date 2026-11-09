@@ -37,7 +37,7 @@ Try the app directly in your browser — no installation required.
 
 ### Requirements
 
-- Node.js 20.19+ or 22.12+ recommended
+- Node.js 22.12+ or 24+
 - npm
 - Git
 
@@ -46,7 +46,7 @@ Try the app directly in your browser — no installation required.
 ```bash
 git clone https://github.com/marcellabongiolo/fintrack.git
 cd fintrack
-npm install
+npm ci
 npm run dev
 ```
 
